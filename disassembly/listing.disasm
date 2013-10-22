@@ -1,0 +1,406 @@
+Disassembly Listing for LEDs
+Generated From:
+C:/Users/Sanjeev/MPLABXProjects/LEDs.X/dist/default/debug/LEDs.X.debug.cof
+09/07/2013 4:20:13 PM
+
+---  C:/Users/Sanjeev/MPLABXProjects/LEDs.X/main.asm  ---------------------------------------------------
+                                                  1:     ;; Written by: Sanjeev Sharma
+                                                  2:     ;; Student ID: 11128079
+                                                  3:     ;; Subject: IDS Assignment 3
+                                                  4:     ;; Parts of this program uses source from 'PIC_A3.asm' provided by UTS, Sydney
+                                                  5:     
+                                                  6:     
+                                                  7:     	list 	p=16f877a			; list directive to define processor
+                                                  8:     	#include	<p16f877A.inc>	; processor specific include file (contains SFR register definitions)
+                                                  9:     
+                                                  10:    
+                                                  11:    ;**********************************************************************
+                                                  12:    ; CONFIGURATION BITS
+                                                  13:    ;  Please DO NOT modify the configuration bits, otherwise your program may
+                                                  14:    ;  fail to work!
+                                                  15:    ;***********************************************************************
+                                                  16:    	__CONFIG	_CP_OFF & _WDT_OFF & _BODEN_OFF & _PWRTE_ON & _HS_OSC & _WRT_OFF & _LVP_OFF & _CPD_OFF
+                                                  17:    
+                                                  18:        radix dec
+                                                  19:    
+                                                  20:    ;**********************************************************************
+                                                  21:    ; PIN DEFINITIONS
+                                                  22:    ; ---------------
+                                                  23:    ;  This allows you to use the actual name of signal which is connected
+                                                  24:    ;  to the I/O pin in your code. For example the LCD RS signal is
+                                                  25:    ;  connected to Bit 0 on Port E. If you want to set this signal to
+                                                  26:    ;  logic high it is normally done with the assembly instruction bsf PORTE,0
+                                                  27:    ;
+                                                  28:    ;  To simplify your code, make it easier to read and maintain a
+                                                  29:    ;  definition of "LCD_RS" can be made and assigned with the value of
+                                                  30:    ;  PORTE,0  So the assembly code to set the LCD RS pin now becomes
+                                                  31:    ;  "bsf LCD_RS"
+                                                  32:    ;***********************************************************************
+                                                  33:    
+                                                  34:    
+                                                  35:    
+                                                  36:    
+                                                  37:    ;**********************************************************************
+                                                  38:    ; GENERAL PURPOSE REGISTERS: ADDRESS DEFINITIONS
+                                                  39:    ;
+                                                  40:    ;**********************************************************************
+                                                  41:    	CBLOCK	0x20
+                                                  42:    	POR_DELAY	;Stored in location 0x20 [Note: POR = Power On Reset]
+                                                  43:    	BYTE_DATA	;0x21
+                                                  44:        ;BIT_COUNT_TO_SEND  ;0x22
+                                                  45:        ;BITS_SENT
+                                                  46:        WAIT_COUNT
+                                                  47:        ID_LED_READY
+                                                  48:    	ENDC
+                                                  49:    
+                                                  50:    ;**********************************************************************
+                                                  51:    ; INTERRUPT SERVICE ROUTINE CONTEXT SAVING REGISTERS
+                                                  52:    ; --------------------------------------------------
+                                                  53:    ;  When interrupts are used, the Working Register, Status Register and
+                                                  54:    ;  PCLATH Register need to be saved before any interrupt service routine
+                                                  55:    ;  is started. The General Purpose Registers at the top of the RAM
+                                                  56:    ;  (0x70 - 0x7F) are shared across each of the 4 banks, hence this is an
+                                                  57:    ;  ideal location to store the ISR Context Save Registers.
+                                                  58:    ;
+                                                  59:    ;**********************************************************************
+                                                  60:    
+                                                  61:    
+                                                  62:    
+                                                  63:    ;**********************************************************************
+                                                  64:    ; PROGRAM CODE
+                                                  65:    ;
+                                                  66:    ;**********************************************************************
+                                                  67:    	ORG	0x000	; Processor Reset Vector
+                                                  68:    RESET_V
+0000  2005     CALL 0x5                           69:        call SPI_INIT
+0001  2815     GOTO 0x15                          70:    	goto	MAIN
+                                                  71:    
+                                                  72:    
+                                                  73:    ;----------------------------------------------------------------------
+                                                  74:    ; INTERRUPT SERVICE ROUTINE
+                                                  75:    ;  This code can be removed if interrupts are not going to be used.
+                                                  76:    ;----------------------------------------------------------------------
+                                                  77:    	ORG	0x004	; Interrupt Vector Location
+                                                  78:    ISR
+0004  0009     RETFIE                             79:        	retfie		; return from interrupt
+                                                  80:    
+                                                  81:    
+                                                  82:    ;----------------------------------------------------------------------
+                                                  83:    ; SPI_INIT ROUTINE
+                                                  84:    ;
+                                                  85:    ;----------------------------------------------------------------------
+                                                  86:    
+                                                  87:    SPI_INIT
+0005  1303     BCF STATUS, 0x6                    88:        bcf STATUS, RP1
+0006  1683     BSF STATUS, 0x5                    89:        bsf STATUS, RP0     ; Bank 1
+0007  3006     MOVLW 0x6                          90:        movlw 0x06
+0008  009F     MOVWF ADCON0                       91:        movwf ADCON1        ; Make all pins digital
+0009  3010     MOVLW 0x10                         92:        movlw b'00010000'
+000A  0087     MOVWF PORTC                        93:        movwf TRISC         ; Set port C, pin 5 as output
+                                                  94:    
+000B  1283     BCF STATUS, 0x5                    95:        bcf STATUS, RP0     ; Bank 0
+000C  101F     BCF ADCON0, 0x0                    96:        bcf ADCON0, ADON    ; Disable ADCON module
+000D  3000     MOVLW 0x0                          97:        movlw b'00000000'
+000E  0087     MOVWF PORTC                        98:        movwf PORTC         ; Set all pins of port C to low
+000F  3020     MOVLW 0x20                         99:        movlw b'00100000'
+0010  0094     MOVWF SSPCON                       100:       movwf SSPCON
+                                                  101:   
+0011  1683     BSF STATUS, 0x5                    102:       bsf STATUS, RP0     ; Bank 1
+0012  3000     MOVLW 0x0                          103:       movlw b'00000000'
+0013  0094     MOVWF SSPCON                       104:       movwf SSPSTAT
+                                                  105:   
+0014  0008     RETURN                             106:       return
+                                                  107:   
+                                                  108:   
+                                                  109:   ;----------------------------------------------------------------------
+                                                  110:   ; MAIN ROUTINE
+                                                  111:   ;
+                                                  112:   ;----------------------------------------------------------------------
+                                                  113:   
+                                                  114:   MAIN
+0015  1283     BCF STATUS, 0x5                    115:       bcf STATUS, RP0
+0016  1303     BCF STATUS, 0x6                    116:       bcf STATUS, RP1     ; Select Bank 0
+                                                  117:   
+                                                  118:   NEXT_REFRESH_CYCLE
+0017  3001     MOVLW 0x1                          119:       movlw 1  ; No of LEDs
+0018  00A3     MOVWF 0x23                         120:       movwf ID_LED_READY
+                                                  121:   
+0019  3004     MOVLW 0x4                          122:       movlw 4  ; Value for delay of ~50 us
+001A  00A2     MOVWF 0x22                         123:       movwf WAIT_COUNT
+                                                  124:   NEXT_DELAY
+001B  3000     MOVLW 0x0                          125:       movlw 0x00
+001C  2035     CALL 0x35                          126:       call SEND_BYTE
+                                                  127:   
+001D  0BA2     DECFSZ 0x22, F                     128:       decfsz WAIT_COUNT
+001E  281B     GOTO 0x1B                          129:       goto NEXT_DELAY
+                                                  130:   CONTINUOUS_SEND
+                                                  131:   
+                                                  132:       ; LED 1
+                                                  133:       ; Green
+001F  30AA     MOVLW 0xAA                         134:       movlw 0xAA
+0020  2035     CALL 0x35                          135:       call SEND_BYTE
+0021  3000     MOVLW 0x0                          136:       movlw 0x00
+0022  2035     CALL 0x35                          137:       call SEND_BYTE
+0023  3000     MOVLW 0x0                          138:       movlw 0x00
+0024  2035     CALL 0x35                          139:       call SEND_BYTE
+                                                  140:   
+                                                  141:       ; Red
+0025  30FF     MOVLW 0xFF                         142:       movlw 0xFF
+0026  2035     CALL 0x35                          143:       call SEND_BYTE
+0027  30FF     MOVLW 0xFF                         144:       movlw 0xFF
+0028  2035     CALL 0x35                          145:       call SEND_BYTE
+0029  30FF     MOVLW 0xFF                         146:       movlw 0xFF
+002A  2035     CALL 0x35                          147:       call SEND_BYTE
+                                                  148:   
+                                                  149:       ; Blue
+002B  3000     MOVLW 0x0                          150:       movlw 0x00
+002C  2035     CALL 0x35                          151:       call SEND_BYTE
+002D  3000     MOVLW 0x0                          152:       movlw 0x00
+002E  2035     CALL 0x35                          153:       call SEND_BYTE
+002F  3000     MOVLW 0x0                          154:       movlw 0x00
+0030  2035     CALL 0x35                          155:       call SEND_BYTE
+                                                  156:   
+0031  0BA3     DECFSZ 0x23, F                     157:       decfsz ID_LED_READY, f
+0032  281F     GOTO 0x1F                          158:       goto CONTINUOUS_SEND
+0033  2817     GOTO 0x17                          159:       goto NEXT_REFRESH_CYCLE
+                                                  160:   
+0034  2834     GOTO 0x34                          161:   	goto	$	; DO NOT REMOVE THIS INSTRUCTION!!!
+                                                  162:   
+                                                  163:   ;----------------------------------------------------------------------
+                                                  164:   ; SEND SINGLE BYTE SUBROUTINE
+                                                  165:   ;
+                                                  166:   ;----------------------------------------------------------------------
+                                                  167:   OUTPUT_0 MACRO
+                                                  168:       bsf PORTA, 0x0
+                                                  169:       bcf PORTA, 0x0
+                                                  170:       nop
+                                                  171:       nop
+                                                  172:       nop
+                                                  173:       nop
+                                                  174:       ENDM
+                                                  175:   
+                                                  176:   OUTPUT_1 MACRO
+                                                  177:       bsf PORTA, 0x0
+                                                  178:       nop
+                                                  179:       nop
+                                                  180:       bcf PORTA, 0x0
+                                                  181:       nop
+                                                  182:       nop
+                                                  183:       ENDM
+                                                  184:   
+                                                  185:   ;#define BIT_0 b'11111111'
+                                                  186:   ;#define BIT_1 b'11111111'
+                                                  187:   #define BIT_0 b'10000000'
+                                                  188:   #define BIT_1 b'11110000'
+                                                  189:   
+                                                  190:   SEND_BYTE
+0035  00A1     MOVWF 0x21                         191:       movwf BYTE_DATA
+                                                  192:   
+                                                  193:   SEND_BIT7
+0036  0813     MOVF SSPBUF, W                     194:       movfw SSPBUF
+0037  1BA1     BTFSC 0x21, 0x7                    195:       btfsc BYTE_DATA, 7
+0038  283C     GOTO 0x3C                          196:       goto SEND_BIT7_1
+                                                  197:   
+                                                  198:   SEND_BIT7_0
+0039  3080     MOVLW 0x80                         199:       movlw BIT_0
+003A  0093     MOVWF SSPBUF                       200:       movwf SSPBUF
+003B  283E     GOTO 0x3E                          201:       goto SEND_BIT6
+                                                  202:   
+                                                  203:   SEND_BIT7_1
+003C  30F0     MOVLW 0xF0                         204:       movlw BIT_1
+003D  0093     MOVWF SSPBUF                       205:       movwf SSPBUF
+                                                  206:   
+                                                  207:   SEND_BIT6
+003E  0813     MOVF SSPBUF, W                     208:       movfw SSPBUF
+003F  1B21     BTFSC 0x21, 0x6                    209:       btfsc BYTE_DATA, 6
+0040  2844     GOTO 0x44                          210:       goto SEND_BIT6_1
+                                                  211:   
+                                                  212:   SEND_BIT6_0
+0041  3080     MOVLW 0x80                         213:       movlw BIT_0
+0042  0093     MOVWF SSPBUF                       214:       movwf SSPBUF
+0043  2846     GOTO 0x46                          215:       goto SEND_BIT5
+                                                  216:   
+                                                  217:   SEND_BIT6_1
+0044  30F0     MOVLW 0xF0                         218:       movlw BIT_1
+0045  0093     MOVWF SSPBUF                       219:       movwf SSPBUF
+                                                  220:   
+                                                  221:   SEND_BIT5
+0046  0813     MOVF SSPBUF, W                     222:       movfw SSPBUF
+0047  1AA1     BTFSC 0x21, 0x5                    223:       btfsc BYTE_DATA, 5
+0048  284C     GOTO 0x4C                          224:       goto SEND_BIT5_1
+                                                  225:   
+                                                  226:   SEND_BIT5_0
+0049  3080     MOVLW 0x80                         227:       movlw BIT_0
+004A  0093     MOVWF SSPBUF                       228:       movwf SSPBUF
+004B  284E     GOTO 0x4E                          229:       goto SEND_BIT4
+                                                  230:   
+                                                  231:   SEND_BIT5_1
+004C  30F0     MOVLW 0xF0                         232:       movlw BIT_1
+004D  0093     MOVWF SSPBUF                       233:       movwf SSPBUF
+                                                  234:   
+                                                  235:   SEND_BIT4
+004E  0813     MOVF SSPBUF, W                     236:       movfw SSPBUF
+004F  1A21     BTFSC 0x21, 0x4                    237:       btfsc BYTE_DATA, 4
+0050  2854     GOTO 0x54                          238:       goto SEND_BIT4_1
+                                                  239:   
+                                                  240:   SEND_BIT4_0
+0051  3080     MOVLW 0x80                         241:       movlw BIT_0
+0052  0093     MOVWF SSPBUF                       242:       movwf SSPBUF
+0053  2856     GOTO 0x56                          243:       goto SEND_BIT3
+                                                  244:   
+                                                  245:   SEND_BIT4_1
+0054  30F0     MOVLW 0xF0                         246:       movlw BIT_1
+0055  0093     MOVWF SSPBUF                       247:       movwf SSPBUF
+                                                  248:   
+                                                  249:   SEND_BIT3
+0056  0813     MOVF SSPBUF, W                     250:       movfw SSPBUF
+0057  19A1     BTFSC 0x21, 0x3                    251:       btfsc BYTE_DATA, 3
+0058  285C     GOTO 0x5C                          252:       goto SEND_BIT3_1
+                                                  253:   
+                                                  254:   SEND_BIT3_0
+0059  3080     MOVLW 0x80                         255:       movlw BIT_0
+005A  0093     MOVWF SSPBUF                       256:       movwf SSPBUF
+005B  285E     GOTO 0x5E                          257:       goto SEND_BIT2
+                                                  258:   
+                                                  259:   SEND_BIT3_1
+005C  30F0     MOVLW 0xF0                         260:       movlw BIT_1
+005D  0093     MOVWF SSPBUF                       261:       movwf SSPBUF
+                                                  262:   
+                                                  263:   SEND_BIT2
+005E  0813     MOVF SSPBUF, W                     264:       movfw SSPBUF
+005F  1921     BTFSC 0x21, 0x2                    265:       btfsc BYTE_DATA, 2
+0060  2864     GOTO 0x64                          266:       goto SEND_BIT2_1
+                                                  267:   
+                                                  268:   SEND_BIT2_0
+0061  3080     MOVLW 0x80                         269:       movlw BIT_0
+0062  0093     MOVWF SSPBUF                       270:       movwf SSPBUF
+0063  2866     GOTO 0x66                          271:       goto SEND_BIT1
+                                                  272:   
+                                                  273:   SEND_BIT2_1
+0064  30F0     MOVLW 0xF0                         274:       movlw BIT_1
+0065  0093     MOVWF SSPBUF                       275:       movwf SSPBUF
+                                                  276:   
+                                                  277:   SEND_BIT1
+0066  0813     MOVF SSPBUF, W                     278:       movfw SSPBUF
+0067  18A1     BTFSC 0x21, 0x1                    279:       btfsc BYTE_DATA, 1
+0068  286C     GOTO 0x6C                          280:       goto SEND_BIT1_1
+                                                  281:   
+                                                  282:   SEND_BIT1_0
+0069  3080     MOVLW 0x80                         283:       movlw BIT_0
+006A  0093     MOVWF SSPBUF                       284:       movwf SSPBUF
+006B  286E     GOTO 0x6E                          285:       goto SEND_BIT0
+                                                  286:   
+                                                  287:   SEND_BIT1_1
+006C  30F0     MOVLW 0xF0                         288:       movlw BIT_1
+006D  0093     MOVWF SSPBUF                       289:       movwf SSPBUF
+                                                  290:   
+                                                  291:   SEND_BIT0
+006E  0813     MOVF SSPBUF, W                     292:       movfw SSPBUF
+006F  1821     BTFSC 0x21, 0x0                    293:       btfsc BYTE_DATA, 0
+0070  2874     GOTO 0x74                          294:       goto SEND_BIT0_1
+                                                  295:   
+                                                  296:   SEND_BIT0_0
+0071  3080     MOVLW 0x80                         297:       movlw BIT_0
+0072  0093     MOVWF SSPBUF                       298:       movwf SSPBUF
+0073  0008     RETURN                             299:       return
+                                                  300:   
+                                                  301:   SEND_BIT0_1
+0074  30F0     MOVLW 0xF0                         302:       movlw BIT_1
+0075  0093     MOVWF SSPBUF                       303:       movwf SSPBUF
+0076  0008     RETURN                             304:       return
+                                                  305:   
+                                                  306:   
+                                                  307:   
+                                                  308:   
+                                                  309:   
+                                                  310:   ;SEND_BYTE
+                                                  311:   ;    movwf BYTE_DATA
+                                                  312:   ;
+                                                  313:   ;    movlw 8
+                                                  314:   ;    movwf BIT_COUNT_TO_SEND
+                                                  315:   ;
+                                                  316:   ;;    btfss SSPSTAT, BF
+                                                  317:   ;;    goto $-1
+                                                  318:   ;
+                                                  319:   ;SEND_NEXT
+                                                  320:   ;    movfw SSPBUF
+                                                  321:   ;    btfsc BYTE_DATA, 0x7    ; Send high bit
+                                                  322:   ;    goto SEND_1
+                                                  323:   ;
+                                                  324:   ;SEND_0
+                                                  325:   ;    movlw BIT_0
+                                                  326:   ;    ;goto CHECK_HAS_NEXT
+                                                  327:   ;    movwf SSPBUF    ; Needed to clear the pipes
+                                                  328:   ;
+                                                  329:   ;    rlf BYTE_DATA, f
+                                                  330:   ;    decfsz BIT_COUNT_TO_SEND, f
+                                                  331:   ;    goto SEND_NEXT
+                                                  332:   ;    return
+                                                  333:   ;
+                                                  334:   ;SEND_1
+                                                  335:   ;    movlw BIT_1
+                                                  336:   ;
+                                                  337:   ;CHECK_HAS_NEXT
+                                                  338:   ;    movwf SSPBUF    ; Needed to clear the pipes
+                                                  339:   ;
+                                                  340:   ;    rlf BYTE_DATA, f
+                                                  341:   ;    decfsz BIT_COUNT_TO_SEND, f
+                                                  342:   ;    goto SEND_NEXT
+                                                  343:   ;
+                                                  344:   ;    return
+                                                  345:   
+                                                  346:   ;SEND_BYTE
+                                                  347:   ;    movwf BYTE_DATA
+                                                  348:   ;
+                                                  349:   ;    movlw 8
+                                                  350:   ;    movwf BIT_COUNT_TO_SEND
+                                                  351:   ;
+                                                  352:   ;SEND_NEXT
+                                                  353:   ;    btfsc BYTE_DATA, 0x0
+                                                  354:   ;    goto SEND_1
+                                                  355:   ;
+                                                  356:   ;SEND_0
+                                                  357:   ;    OUTPUT_0
+                                                  358:   ;    goto CHECK_HAS_NEXT
+                                                  359:   ;
+                                                  360:   ;SEND_1
+                                                  361:   ;    OUTPUT_1
+                                                  362:   ;
+                                                  363:   ;CHECK_HAS_NEXT
+                                                  364:   ;    rrf BYTE_DATA
+                                                  365:   ;    decfsz BIT_COUNT_TO_SEND, f
+                                                  366:   ;    goto SEND_NEXT
+                                                  367:   ;
+                                                  368:   ;    return
+                                                  369:   
+                                                  370:   
+                                                  371:   ;----------------------------------------------------------------------
+                                                  372:   ; 60 MICROSECOND DELAY SUBROUTINE
+                                                  373:   ; Note this function has been calibrated to give a 60 Microsecond delay
+                                                  374:   ; between the time the function is called, and when it returns.
+                                                  375:   ;----------------------------------------------------------------------
+                                                  376:   ;DELAY_60us
+                                                  377:   ;	movlw	D'98'
+                                                  378:   ;	movwf	DELAY_CNTR1
+                                                  379:   ;
+                                                  380:   ;	decfsz	DELAY_CNTR1,f
+                                                  381:   ;	goto	$-1 	;$-1 means the previous instruction
+                                                  382:   ;	nop
+                                                  383:   ;	return
+                                                  384:   
+                                                  385:   
+                                                  386:   ;-----------------------------------------------------------------------
+                                                  387:   ; 6 MILLISECOND DELAY SUBROUTINE
+                                                  388:   ; Note this function has been calibrated to give a 6.0004 Millisecond delay
+                                                  389:   ; between the time the function is called, and when it returns.
+                                                  390:   ;-----------------------------------------------------------------------
+                                                  391:   ;DELAY_6ms
+                                                  392:   ;	movlw	D'99'
+                                                  393:   ;	movwf	DELAY_CNTR2
+                                                  394:   ;
+                                                  395:   ;	call	DELAY_60us
+                                                  396:   ;	decfsz	DELAY_CNTR2,f
+                                                  397:   ;	goto	$-2	;$-2 means the 2nd previous instruction (ie call DELAY_60us)
+                                                  398:   ;	return
+                                                  399:   ;
+2007  0000     NOP                                400:   	END
